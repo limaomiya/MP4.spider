@@ -15,7 +15,7 @@ A lightweight Python script to download M3U8 streaming videos and merge TS segme
 链接时效性：M3U8 地址通常包含签名参数，有效时间较短，请获取后立即运行脚本。
 视频加密：本脚本仅支持未加密的 TS 流。若 M3U8 中包含 #EXT-X-KEY，需先解密片段。
 仅供学习：请遵守目标网站的 robots.txt 及相关法律法规，仅将下载内容用于个人学习与研究。
-
+ps:因为抓猫的下载器确实是有点慢的，所以特意编写一个脚本提高爬取效率，本质是一个半自动化的爬虫脚本。
 ##环境要求
 - Python 3.6 或更高版本
 - 第三方库：`requests`、`urllib3`
