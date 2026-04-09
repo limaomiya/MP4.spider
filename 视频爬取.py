@@ -3,13 +3,14 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ================== 配置区 ==================
-M3U8_URL = "https://ppvod011.blbtgg.com/splitOut/20260106/1228337/V20260106012739759441228337/index.m3u8?auth_key=1775725507-495184819d8841388fea08e9c74fab29-0-4adb761208f9fadc0687dacff8430a10"
-
+M3U8_URL = "  "                           #输入获取到的m3u8地址（可以用插件抓猫获取）
 OUTPUT_MP4 = "video.mp4"                # 最终视频文件名
-MAX_WORKERS = 36                        # 下载线程数（i5-13500H 适合 24~32）
+MAX_WORKERS = 36                        # 下载线程数（8-36）
 TEMP_DIR = "ts_temp"                    # 存放 TS 片段的临时文件夹
+#OUTPUT_MP4 = r"C:\Users\你的用户名\Videos\video.mp4" 最终视频文件名保存的地址，如需要可自行添加，否则自动保存到当前python文件根目录
 # =============================================
 
 headers = {
@@ -22,18 +23,19 @@ def download_ts(ts_url, ts_path, retries=3):
     """下载单个 TS 片段，支持失败重试"""
     for i in range(retries):
         try:
-            r = requests.get(ts_url, headers=headers, timeout=10)
+            r = requests.get(ts_url, headers=headers, timeout=10,verify=False)
             if r.status_code == 200:
                 with open(ts_path, 'wb') as f:
                     f.write(r.content)
                 return True
         except Exception:
             pass
-        time.sleep(1)   # 重试前等待 1 秒
+        time.sleep(1)
     return False
 
+
+
 def merge_ts_files(ts_dir, output_file):
-    """使用纯 Python 按顺序合并所有 TS 片段（无需 ffmpeg）"""
     # 获取所有 .ts 文件并按文件名排序
     ts_files = sorted([f for f in os.listdir(ts_dir) if f.endswith('.ts')])
     if not ts_files:
@@ -54,7 +56,7 @@ def merge_ts_files(ts_dir, output_file):
 def main():
     # 1. 获取 M3U8 文件
     print("正在获取 M3U8 文件...")
-    resp = requests.get(M3U8_URL, headers=headers)
+    resp = requests.get(M3U8_URL, headers=headers,verify=False)
     if resp.status_code != 200:
         print(f"M3U8 请求失败，状态码: {resp.status_code}")
         return
@@ -110,14 +112,11 @@ def main():
     # 7. 合并 TS 片段为 MP4
     merge_ts_files(TEMP_DIR, OUTPUT_MP4)
 
-    # 8. 询问是否删除临时文件夹
-    choice = input("是否删除临时文件夹 ts_temp？(y/n): ").strip().lower()
-    if choice == 'y':
-        import shutil
-        shutil.rmtree(TEMP_DIR)
-        print("临时文件夹已删除")
-    else:
-        print(f"临时文件夹保留在: {os.path.abspath(TEMP_DIR)}")
+    # 8. 删除临时文件夹
+    import shutil
+    shutil.rmtree(TEMP_DIR)
+
+
 
 if __name__ == '__main__':
     main()
